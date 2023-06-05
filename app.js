@@ -16,7 +16,9 @@ const Message = require('./models/message')
 
 connectToDatabase();
 
-//User
+
+
+// User
 app.get('/api/user', async (req, res) => {
     const users = await User.find()
 
@@ -30,13 +32,89 @@ app.get('/api/user/:id', async (req, res) => {
     res.json(user);
 })
 
-app.delete('/api/user/:id', async (req, res) => {
+app.get('/api/user/:id/foodbanks', async (req, res) => {
     if(req.params.id == ''){ return; }
+    const user = await User.findById(req.params.id)
+    if(!user){
+        return res.status(404).json({ message : 'Unable to find user'})
+    }
+
+    const banks = await FoodBank.find({ _id: {$in: user.banks}})
+    res.json(banks);
+})
+
+app.put('/api/user/:id/update', async (req, res) => {
+    const { banks, access } = req.body;
+    if(!req.params.id) return res.status(400)
+
+    if(!banks && !access){
+        return res.status(400).json({
+            message: 'No parameters to update'
+        })
+    }
+
+    const updateFields = {}
+    if(banks){
+        updateFields.$push = { banks: banks }
+    }
+    if(access){
+        updateFields.access = access 
+    }
+    
+    User.findByIdAndUpdate(req.params.id, updateFields, { new: true })
+        .then(updatedUser => {
+            if(!updatedUser) {
+                return res.status(404).json({ message: 'User not found'});
+            }
+            res.json(updatedUser)
+    })
+})
+
+app.delete('/api/user/:id', async (req, res) => {
+    if(req.params.id == ''){ return res.status(400); }
     const deleteUser = await User.findByIdAndDelete(req.params.id)
 
     res.json(deleteUser);
 })
 
+
+// Foodbanks
+app.get('/api/foodbank', async (req, res) => {
+    const bank = await FoodBank.find()
+    res.json(bank);
+})
+
+app.get('/api/foodbank/:id', async (req, res) => {
+    if(req.params.id == ''){ return res.status(400); }
+    const bank = await FoodBank.findById(req.params.id)
+
+    res.json(bank);
+})
+
+app.put('/api/foodbank/:id', async (req, res) => {
+    if(req.params.id == ''){ return res.status(400); }
+    const bank = await FoodBank.findById(req.params.id)
+
+    res.json(bank);
+})
+
+app.get('/api/foodbank/filter', async (req , res) => {
+    // to make a request to this you would type something like
+    // URL.com/api/foodbank/filter?halal=true&vegetarian=true
+    const fields = ['halal', 'kosher', 'vegetarian', 'vegan'];
+    const filters = {};
+
+    fields.forEach(field => {
+        if (req.query[field]){
+            filters[field] = req.query[field] === 'true'
+        }
+    });
+
+    const foodbanks = await FoodBank.find(filters);
+    res.json(foodbanks)
+})
+
+// Log in and registration
 app.post('/api/user/login', async (req , res) => {
     const { username, password } = req.body;
 

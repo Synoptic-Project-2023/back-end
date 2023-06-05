@@ -92,10 +92,27 @@ app.get('/api/foodbank/:id', async (req, res) => {
 })
 
 app.put('/api/foodbank/:id', async (req, res) => {
-    if(req.params.id == ''){ return res.status(400); }
-    const bank = await FoodBank.findById(req.params.id)
+    const { id } = req.params;
+    if(id == ''){ return res.status(400); }
+    const { halal, kosher, vegetarian, vegan, stock } = req.body;
+    
+    const foodBank = await FoodBank.findByIdAndUpdate(
+        id,
+        {
+            halal,
+            kosher,
+            vegetarian,
+            vegan,
+            stock
+        },
+        { new: true }
+    );
 
-    res.json(bank);
+    if (!foodBank){
+        return res.status(404).json({message: 'Food Bank not found'})
+    }
+
+    res.json(foodBank);
 })
 
 app.get('/api/foodbank/filter', async (req , res) => {
@@ -112,6 +129,31 @@ app.get('/api/foodbank/filter', async (req , res) => {
 
     const foodbanks = await FoodBank.find(filters);
     res.json(foodbanks)
+})
+
+app.post('/api/foodbank', async (req, res) => {
+
+    const foodBank = new FoodBank({
+        bankName: req.body.bankName,
+        description: req.body.description,
+        position: req.body.position,
+        stock: req.body.stock,
+        halal: req.body.halal,
+        kosher: req.body.kosher,
+        vegetarian: req.body.vegetarian,
+        vegan: req.body.vegan
+    });
+
+    const result = await foodBank.save();
+    
+    res.status(201).json(result);
+})
+
+app.delete('/api/foodbank/:id', async (req, res) => {
+    if(req.params.id == ''){ return res.status(400); }
+    const deleteBank = await FoodBank.findByIdAndDelete(req.params.id)
+
+    res.json(deleteBank);
 })
 
 // Log in and registration
@@ -157,6 +199,43 @@ app.post('/api/user/register', async (req, res) => {
 
     await newUser.save();
     res.json(newUser);
+})
+
+// Messages
+app.post('/api/user/:id/message', async (req, res) =>{
+    const senderId = req.params.id;
+    const { recieverName, title, description, toLevel } = req.body;
+    const reciever = await User.findOne({ username : recieverName })
+    if(!reciever || senderId == ''){ return res.status(400); }
+    if(!(title && description && toLevel)){ return res.status(400); }
+    
+    const newMessage = new Message({
+        senderId,
+        recieverId : reciever._id,
+        title,
+        description,
+        toLevel
+    })
+
+    await newMessage.save();
+    res.json(newMessage)
+})
+
+app.get('/api/user/:id/message', async (req, res) => {
+    if(req.params.id == ''){ return res.status(400); }
+    
+    const messages = await Message.find({
+        recieverId : req.params.id
+    })
+
+    res.json(messages)
+})
+
+app.delete('/api/user/message/:messageId', async (req, res) => {
+    if(req.params.messageId == ''){ return res.status(400); }
+    const deleteMessage = await Message.findByIdAndDelete(req.params.messageId)
+
+    res.json(deleteMessage);
 })
 
 

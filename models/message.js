@@ -5,12 +5,10 @@ const messageSchema = new Schema({
     title : {
         type: String,
         required : true,
-        default : ""
     },
     description : {
         type: String,
         required : true,
-        default : ""
     },
     senderId : {
         type: mongoose.Types.ObjectId,

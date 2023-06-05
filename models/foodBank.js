@@ -2,15 +2,13 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const foodBankSchema = new Schema({
-    name : {
+    bankName : {
         type: String,
         required : true,
-        default : ""
     },
     description : {
         type: String,
         required : true,
-        default : ""
     },
     position : {
         coordinates: [Number]

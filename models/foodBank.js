@@ -37,6 +37,8 @@ const foodBankSchema = new Schema({
         type: Date,
         default: Date.now()
     }
+}, { 
+    timestamps: true 
 })
 
 const FoodBank = mongoose.model("FoodBank", foodBankSchema);

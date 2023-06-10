@@ -10,8 +10,23 @@ const foodBankSchema = new Schema({
         type: String,
         required : true,
     },
-    position : {
-        coordinates: [Number]
+    location: {
+        latitude: {
+            type: Number,
+            required: true,
+        },
+        longitude: {
+            type: Number,
+            required: true,
+        },
+        latitudeDelta: {
+            type: Number,
+            default: 0.01,
+        },
+        longitudeDelta: {
+            type: Number,
+            default: 0.01,
+        }
     },
     stock : {
         type : String,

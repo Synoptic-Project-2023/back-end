@@ -136,7 +136,7 @@ app.post('/api/foodbank', async (req, res) => {
     const foodBank = new FoodBank({
         bankName: req.body.bankName,
         description: req.body.description,
-        position: req.body.position,
+        location: req.body.location,
         stock: req.body.stock,
         halal: req.body.halal,
         kosher: req.body.kosher,
@@ -158,11 +158,11 @@ app.delete('/api/foodbank/:id', async (req, res) => {
 
 // Log in and registration
 app.post('/api/user/login', async (req , res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email });
     if (!user) {
-        return res.status(401).json({ message: 'Invalid Username' });
+        return res.status(401).json({ message: 'Invalid Email' });
     }
 
     console.log(user)

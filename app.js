@@ -203,10 +203,13 @@ app.post('/api/user/register', async (req, res) => {
 
 // Messages
 app.post('/api/user/:id/message', async (req, res) =>{
+    
     const senderId = req.params.id;
     const { recieverName, title, description, toLevel } = req.body;
-    const reciever = await User.findOne({ username : recieverName })
-    if(!reciever || senderId == ''){ return res.status(400); }
+    let reciever = await FoodBank.findOne({ bankName : recieverName })
+    // let reciever = await User.findOne({ username : recieverName })
+    if(!reciever){ reciever = { _id : senderId } }
+    if(senderId == ''){ return res.status(400); }
     if(!(title && description && toLevel)){ return res.status(400); }
     
     const newMessage = new Message({
@@ -218,7 +221,14 @@ app.post('/api/user/:id/message', async (req, res) =>{
     })
 
     await newMessage.save();
+    console.log(newMessage)
     res.json(newMessage)
+})
+
+app.get('/api/messages', async (req, res) => {
+    const messages = await Message.find()
+
+    res.json(messages)
 })
 
 app.get('/api/user/:id/message', async (req, res) => {

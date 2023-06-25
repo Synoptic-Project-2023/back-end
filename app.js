@@ -13,9 +13,48 @@ app.use(cors());
 const FoodBank = require('./models/foodBank');
 const User = require('./models/user');
 const Message = require('./models/message')
+const LeaderBoard = require('./models/leaderBoard')
 
 connectToDatabase();
 
+// GAME STUFF
+app.get('/api/beangame/top10', async (req, res) => {
+    const gamers = await LeaderBoard.find().sort({score : -1})
+    res.json(gamers);
+})
+
+app.post('/api/beangame/newScore', async (req, res) => {
+    try {
+        var score = req.body.score;
+
+        var checkLength = await LeaderBoard.find();
+        if (checkLength.length <= 10) {
+            const leaderBoard = new LeaderBoard({
+                username: req.body.username,
+                score: req.body.score
+            });
+            const result = await leaderBoard.save();
+            return res.status(201).json(result);
+        } else {
+            var findSmallest = await LeaderBoard.find().sort({ score: 1 }).limit(1);
+            console.log(findSmallest[0])
+            if (score > findSmallest[0].score) {
+                await LeaderBoard.deleteOne(findSmallest[0]);
+                const leaderBoard = new LeaderBoard({
+                    username: req.body.username,
+                    score: req.body.score
+                });
+                const result = await leaderBoard.save();
+                return res.status(201).json(result);
+            }
+        }
+
+        return res.status(422).json({ error: 'Validation failed' });
+    } catch (error) {
+        // Handle validation errors
+        return res.status(422).json({ error: error.message });
+    }
+});
 
 
 // User
